@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+
+
+function createObstacle() {
+const width = 40;
+const x = Math.random() * (canvas.width - width);
+obstacles.push({ x, y: -40, width, height: 40, speed: 4 });
+}
+
+
+function update() {
+if (gameOver) return;
+
+
+// 플레이어 이동
+if (keys["ArrowLeft"] && player.x > 0) player.x -= player.speed;
+if (keys["ArrowRight"] && player.x + player.width < canvas.width)
+player.x += player.speed;
+
+
+// 장애물 생성
+frame++;
+if (frame % 60 === 0) createObstacle();
+
+
+// 장애물 이동
+obstacles.forEach(o => o.y += o.speed);
+
+
+// 충돌 체크
+obstacles.forEach(o => {
+if (
+player.x < o.x + o.width &&
+player.x + player.width > o.x &&
+player.y < o.y + o.height &&
+player.y + player.height > o.y
+) {
+gameOver = true;
+}
+});
+
+
+// 화면 밖 장애물 제거
+obstacles = obstacles.filter(o => o.y < canvas.height);
+}
+
+
+function draw() {
+ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+
+// 플레이어
+ctx.fillStyle = "blue";
+ctx.fillRect(player.x, player.y, player.width, player.height);
+
+
+// 장애물
+ctx.fillStyle = "red";
+obstacles.forEach(o => ctx.fillRect(o.x, o.y, o.width, o.height));
+
+
+if (gameOver) {
+ctx.fillStyle = "black";
+ctx.font = "30px Arial";
+ctx.fillText("GAME OVER", 110, 300);
+}
+}
+
+
+function gameLoop() {
+update();
+draw();
+requestAnimationFrame(gameLoop);
+}
+
+
+gameLoop();
+</script>
+</body>
+</html>
