@@ -1,80 +1,105 @@
 <!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>장애물 피하기 게임</title>
+  <style>
+    body {
+      margin: 0;
+      background: #111;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+    canvas {
+      background: white;
+    }
+  </style>
+</head>
+<body>
 
+<canvas id="game" width="400" height="600"></canvas>
+
+<script>
+const canvas = document.getElementById("game");
+const ctx = canvas.getContext("2d");
+
+const player = {
+  x: 180,
+  y: 520,
+  width: 40,
+  height: 40,
+  speed: 6
+};
+
+let obstacles = [];
+let frame = 0;
+let gameOver = false;
+
+const keys = {};
+window.addEventListener("keydown", e => keys[e.key] = true);
+window.addEventListener("keyup", e => keys[e.key] = false);
 
 function createObstacle() {
-const width = 40;
-const x = Math.random() * (canvas.width - width);
-obstacles.push({ x, y: -40, width, height: 40, speed: 4 });
+  const width = 40;
+  const x = Math.random() * (canvas.width - width);
+  obstacles.push({ x, y: -40, width, height: 40, speed: 4 });
 }
-
 
 function update() {
-if (gameOver) return;
+  if (gameOver) return;
 
+  if (keys["ArrowLeft"] && player.x > 0)
+    player.x -= player.speed;
+  if (keys["ArrowRight"] && player.x + player.width < canvas.width)
+    player.x += player.speed;
 
-// 플레이어 이동
-if (keys["ArrowLeft"] && player.x > 0) player.x -= player.speed;
-if (keys["ArrowRight"] && player.x + player.width < canvas.width)
-player.x += player.speed;
+  frame++;
+  if (frame % 60 === 0) createObstacle();
 
+  obstacles.forEach(o => o.y += o.speed);
 
-// 장애물 생성
-frame++;
-if (frame % 60 === 0) createObstacle();
+  obstacles.forEach(o => {
+    if (
+      player.x < o.x + o.width &&
+      player.x + player.width > o.x &&
+      player.y < o.y + o.height &&
+      player.y + player.height > o.y
+    ) {
+      gameOver = true;
+    }
+  });
 
-
-// 장애물 이동
-obstacles.forEach(o => o.y += o.speed);
-
-
-// 충돌 체크
-obstacles.forEach(o => {
-if (
-player.x < o.x + o.width &&
-player.x + player.width > o.x &&
-player.y < o.y + o.height &&
-player.y + player.height > o.y
-) {
-gameOver = true;
+  obstacles = obstacles.filter(o => o.y < canvas.height);
 }
-});
-
-
-// 화면 밖 장애물 제거
-obstacles = obstacles.filter(o => o.y < canvas.height);
-}
-
 
 function draw() {
-ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+  ctx.fillStyle = "blue";
+  ctx.fillRect(player.x, player.y, player.width, player.height);
 
-// 플레이어
-ctx.fillStyle = "blue";
-ctx.fillRect(player.x, player.y, player.width, player.height);
+  ctx.fillStyle = "red";
+  obstacles.forEach(o =>
+    ctx.fillRect(o.x, o.y, o.width, o.height)
+  );
 
-
-// 장애물
-ctx.fillStyle = "red";
-obstacles.forEach(o => ctx.fillRect(o.x, o.y, o.width, o.height));
-
-
-if (gameOver) {
-ctx.fillStyle = "black";
-ctx.font = "30px Arial";
-ctx.fillText("GAME OVER", 110, 300);
+  if (gameOver) {
+    ctx.fillStyle = "black";
+    ctx.font = "30px Arial";
+    ctx.fillText("GAME OVER", 110, 300);
+  }
 }
-}
-
 
 function gameLoop() {
-update();
-draw();
-requestAnimationFrame(gameLoop);
+  update();
+  draw();
+  requestAnimationFrame(gameLoop);
 }
-
 
 gameLoop();
 </script>
+
 </body>
 </html>
